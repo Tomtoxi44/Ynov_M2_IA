@@ -1,0 +1,46 @@
+@using TimeTravelAgency.Models
+
+<a href="/destinations/@Destination.Id" class="destination-card-link">
+    <article class="destination-card @AnimationDelayClass">
+        <div class="destination-card-image">
+            <img src="@GetImageUrl()" alt="@Destination.Name" loading="lazy" onerror="this.src='https://via.placeholder.com/800x500/1a1a24/c9a962?text=@Destination.Name'" />
+            <div class="destination-card-overlay">
+                <span class="destination-card-period">@Destination.Period</span>
+            </div>
+        </div>
+        <div class="destination-card-content">
+            <h3 class="destination-card-title">@Destination.Name</h3>
+            <p class="destination-card-description">@Destination.ShortDescription</p>
+            <div class="destination-card-footer">
+                <div class="destination-card-price">
+                    @Destination.Price.ToString("N0") € <span>/ @Destination.Duration jours</span>
+                </div>
+                <div class="destination-card-rating">
+                    @Destination.Rating.ToString("0.0")
+                </div>
+            </div>
+        </div>
+    </article>
+</a>
+
+@code {
+    [Parameter]
+    public required Destination Destination { get; set; }
+    
+    [Parameter]
+    public int AnimationDelay { get; set; } = 0;
+    
+    private string AnimationDelayClass => AnimationDelay > 0 ? $"animate-delay-{AnimationDelay}" : "";
+
+    private string GetImageUrl()
+    {
+        // Images fiables pour chaque destination
+        return Destination.Id switch
+        {
+            1 => "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=800", // Paris/Tour Eiffel
+            2 => "https://images.pexels.com/photos/1115161/pexels-photo-1115161.jpeg?auto=compress&cs=tinysrgb&w=800", // Forêt tropicale/Nature préhistorique
+            3 => "https://images.pexels.com/photos/2422461/pexels-photo-2422461.jpeg?auto=compress&cs=tinysrgb&w=800", // Florence/Duomo
+            _ => "https://images.pexels.com/photos/1169754/pexels-photo-1169754.jpeg?auto=compress&cs=tinysrgb&w=800"  // Default
+        };
+    }
+}

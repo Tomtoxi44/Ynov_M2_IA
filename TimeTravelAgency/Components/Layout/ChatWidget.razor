@@ -1,0 +1,131 @@
+@using TimeTravelAgency.Models
+@using TimeTravelAgency.Services
+@inject ChatService ChatService
+@rendermode InteractiveServer
+
+<div class="chat-widget">
+    <button class="chat-toggle" @onclick="ToggleChat" title="Ouvrir le chat">
+        <svg class="chat-toggle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            @if (isOpen)
+            {
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            }
+            else
+            {
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+            }
+        </svg>
+    </button>
+    
+    <div class="chat-window @(isOpen ? "open" : "")">
+        <div class="chat-header">
+            <div>
+                <div class="chat-header-title">Assistant TimeTravel</div>
+                <div class="chat-header-subtitle">En ligne</div>
+            </div>
+            <button class="chat-close" @onclick="ToggleChat">&times;</button>
+        </div>
+        
+        <div class="chat-messages" @ref="messagesContainer">
+            @foreach (var message in messages)
+            {
+                <div class="chat-message @message.Role">
+                    @message.Content
+                </div>
+            }
+            @if (isLoading)
+            {
+                <div class="chat-message assistant">
+                    <div class="spinner"></div>
+                </div>
+            }
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" 
+                   class="chat-input" 
+                   placeholder="Posez votre question..."
+                   @bind="currentMessage"
+                   @bind:event="oninput"
+                   @onkeypress="HandleKeyPress"
+                   disabled="@isLoading" />
+            <button class="chat-send" 
+                    @onclick="SendMessage" 
+                    disabled="@(string.IsNullOrWhiteSpace(currentMessage) || isLoading)">
+                Envoyer
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isOpen = false;
+    private bool isLoading = false;
+    private string currentMessage = "";
+    private List<ChatMessage> messages = new();
+    private ElementReference messagesContainer;
+
+    protected override void OnInitialized()
+    {
+        messages.Add(new ChatMessage
+        {
+            Role = "assistant",
+            Content = "Bonjour ! Je suis votre assistant TimeTravel. Comment puis-je vous aider à planifier votre voyage temporel ?"
+        });
+    }
+
+    private void ToggleChat()
+    {
+        isOpen = !isOpen;
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(currentMessage) && !isLoading)
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage) || isLoading)
+            return;
+
+        var userMessage = currentMessage.Trim();
+        currentMessage = "";
+        
+        messages.Add(new ChatMessage
+        {
+            Role = "user",
+            Content = userMessage
+        });
+        
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var response = await ChatService.GetResponseAsync(messages);
+            
+            messages.Add(new ChatMessage
+            {
+                Role = "assistant",
+                Content = response
+            });
+        }
+        catch (Exception)
+        {
+            messages.Add(new ChatMessage
+            {
+                Role = "assistant",
+                Content = "Désolé, une erreur s'est produite. Veuillez réessayer."
+            });
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

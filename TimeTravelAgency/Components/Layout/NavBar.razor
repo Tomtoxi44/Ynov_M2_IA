@@ -1,0 +1,45 @@
+@inject NavigationManager Navigation
+
+<nav class="navbar">
+    <div class="container navbar-content">
+        <a href="/" class="navbar-brand">
+            Time<span>Travel</span> Agency
+        </a>
+        
+        <button class="navbar-toggle" @onclick="ToggleMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <ul class="navbar-nav @(isMenuOpen ? "open" : "")">
+            <li><a href="/" class="@GetActiveClass("/")">Accueil</a></li>
+            <li><a href="/destinations" class="@GetActiveClass("/destinations")">Destinations</a></li>
+            <li><a href="/quiz" class="@GetActiveClass("/quiz")">Trouvez votre voyage</a></li>
+            <li><a href="/reservation" class="@GetActiveClass("/reservation")">Réserver</a></li>
+        </ul>
+    </div>
+</nav>
+
+@code {
+    private bool isMenuOpen = false;
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+    private string GetActiveClass(string path)
+    {
+        var currentUri = Navigation.Uri;
+        var relativePath = Navigation.ToBaseRelativePath(currentUri);
+        
+        if (path == "/" && string.IsNullOrEmpty(relativePath))
+            return "active";
+        
+        if (path != "/" && relativePath.StartsWith(path.TrimStart('/')))
+            return "active";
+        
+        return "";
+    }
+}

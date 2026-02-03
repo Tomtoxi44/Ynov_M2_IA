@@ -1,0 +1,134 @@
+@page "/destinations"
+@page "/destinations/{Id:int}"
+@using TimeTravelAgency.Services
+@using TimeTravelAgency.Components.Shared
+@inject DestinationService DestinationService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>@(selectedDestination != null ? selectedDestination.Name : "Destinations") - TimeTravel Agency</PageTitle>
+
+@if (Id == null)
+{
+    <!-- Liste des destinations -->
+    <section class="section" style="padding-top: 120px;">
+        <div class="container">
+            <div class="section-header">
+                <h1>Nos Destinations Temporelles</h1>
+                <div class="gold-line"></div>
+                <p>Explorez trois époques fascinantes et choisissez votre prochaine aventure à travers le temps.</p>
+            </div>
+            
+            <div class="destinations-grid">
+                @foreach (var (destination, index) in destinations.Select((d, i) => (d, i)))
+                {
+                    <DestinationCard Destination="destination" AnimationDelay="@(index + 1)" />
+                }
+            </div>
+        </div>
+    </section>
+}
+else if (selectedDestination != null)
+{
+    <!-- Détail d'une destination -->
+    <section class="destination-hero">
+        <div class="hero-background">
+            <img src="@GetImageUrl(selectedDestination.Id)" alt="@selectedDestination.Name" />
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="container destination-hero-content">
+            <p class="hero-subtitle">@selectedDestination.Period</p>
+            <h1 class="hero-title">@selectedDestination.Name</h1>
+        </div>
+    </section>
+    
+    <section class="destination-detail">
+        <div class="container">
+            <div class="destination-detail-grid">
+                <div class="destination-main">
+                    <h2>À propos de cette destination</h2>
+                    <p style="font-size: 1.125rem; line-height: 1.8; margin-bottom: 3rem;">
+                        @selectedDestination.FullDescription
+                    </p>
+                    
+                    <h3 style="margin-bottom: 1.5rem;">Points forts du voyage</h3>
+                    <ul class="destination-highlights">
+                        @foreach (var highlight in selectedDestination.Highlights)
+                        {
+                            <li>@highlight</li>
+                        }
+                    </ul>
+                </div>
+                
+                <div class="destination-sidebar">
+                    <div class="booking-card">
+                        <div class="booking-card-price">@selectedDestination.Price.ToString("N0") €</div>
+                        <div class="booking-card-duration">@selectedDestination.Duration jours / @(selectedDestination.Duration - 1) nuits</div>
+                        
+                        <ul class="booking-features">
+                            @foreach (var include in selectedDestination.Includes)
+                            {
+                                <li>@include</li>
+                            }
+                        </ul>
+                        
+                        <a href="/reservation?destination=@selectedDestination.Id" class="btn btn-primary" style="width: 100%;">
+                            Réserver ce voyage
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="section" style="padding-top: 120px; text-align: center;">
+        <div class="container">
+            <h1>Destination non trouvée</h1>
+            <p>Cette destination n'existe pas ou a été supprimée.</p>
+            <a href="/destinations" class="btn btn-primary mt-4">Voir toutes les destinations</a>
+        </div>
+    </section>
+}
+
+<style>
+    .destination-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+    
+    private List<TimeTravelAgency.Models.Destination> destinations = new();
+    private TimeTravelAgency.Models.Destination? selectedDestination;
+
+    protected override void OnParametersSet()
+    {
+        destinations = DestinationService.GetAllDestinations();
+        
+        if (Id.HasValue)
+        {
+            selectedDestination = DestinationService.GetDestinationById(Id.Value);
+        }
+        else
+        {
+            selectedDestination = null;
+        }
+    }
+
+    private string GetImageUrl(int id)
+    {
+        return id switch
+        {
+            1 => "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1920",
+            2 => "https://images.pexels.com/photos/1115161/pexels-photo-1115161.jpeg?auto=compress&cs=tinysrgb&w=1920",
+            3 => "https://images.pexels.com/photos/2422461/pexels-photo-2422461.jpeg?auto=compress&cs=tinysrgb&w=1920",
+            _ => "https://images.pexels.com/photos/1169754/pexels-photo-1169754.jpeg?auto=compress&cs=tinysrgb&w=1920"
+        };
+    }
+}

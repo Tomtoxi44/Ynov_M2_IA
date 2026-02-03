@@ -1,0 +1,159 @@
+﻿@page "/"
+@using TimeTravelAgency.Services
+@using TimeTravelAgency.Components.Shared
+@inject DestinationService DestinationService
+@rendermode InteractiveServer
+
+<PageTitle>TimeTravel Agency - Voyagez à travers le temps</PageTitle>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-background">
+        <img src="https://images.pexels.com/photos/1169754/pexels-photo-1169754.jpeg?auto=compress&cs=tinysrgb&w=1920" alt="Voyage temporel" />
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="hero-content">
+        <p class="hero-subtitle">Bienvenue chez TimeTravel Agency</p>
+        <h1 class="hero-title">Voyagez à travers le temps</h1>
+        <p class="hero-description">
+            Découvrez les époques les plus fascinantes de l'histoire. 
+            Paris 1889, l'ère des dinosaures ou la Renaissance florentine vous attendent.
+        </p>
+        <div class="hero-buttons">
+            <a href="/destinations" class="btn btn-primary btn-lg">Découvrir nos destinations</a>
+            <a href="/quiz" class="btn btn-secondary btn-lg">Trouvez votre voyage idéal</a>
+        </div>
+    </div>
+</section>
+
+<!-- Destinations Section -->
+<section class="section" id="destinations">
+    <div class="container">
+        <div class="section-header">
+            <h2>Nos Destinations Temporelles</h2>
+            <div class="gold-line"></div>
+            <p>Trois époques extraordinaires, trois expériences uniques. Choisissez votre aventure.</p>
+        </div>
+        
+        <div class="destinations-grid">
+            @foreach (var (destination, index) in destinations.Select((d, i) => (d, i)))
+            {
+                <DestinationCard Destination="destination" AnimationDelay="@(index + 1)" />
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="section" style="background: var(--color-bg-secondary);">
+    <div class="container">
+        <div class="section-header">
+            <h2>Pourquoi nous choisir ?</h2>
+            <div class="gold-line"></div>
+            <p>Une expertise unique, une technologie de pointe, une sécurité absolue.</p>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card animate-on-scroll">
+                <div class="feature-icon">01</div>
+                <h3>Technologie de pointe</h3>
+                <p>Notre technologie de voyage temporel est la plus avancée au monde, certifiée par les plus grandes autorités scientifiques.</p>
+            </div>
+            <div class="feature-card animate-on-scroll animate-delay-1">
+                <div class="feature-icon">02</div>
+                <h3>Sécurité maximale</h3>
+                <p>Chaque voyage est encadré par des experts. Nos protocoles de sécurité garantissent votre retour en toute sérénité.</p>
+            </div>
+            <div class="feature-card animate-on-scroll animate-delay-2">
+                <div class="feature-icon">03</div>
+                <h3>Expérience immersive</h3>
+                <p>Vivez l'histoire de l'intérieur. Nos guides historiens vous accompagnent pour une immersion totale.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Prêt pour l'aventure ?</h2>
+            <p>Réservez votre voyage temporel dès maintenant et vivez une expérience inoubliable.</p>
+            <a href="/reservation" class="btn btn-primary btn-lg">Réserver maintenant</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .feature-card {
+        background: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-lg);
+        padding: 2.5rem;
+        text-align: center;
+        transition: all var(--transition-normal);
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--color-gold);
+    }
+    
+    .feature-icon {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--color-gold);
+        margin-bottom: 1.5rem;
+        opacity: 0.3;
+    }
+    
+    .feature-card h3 {
+        margin-bottom: 1rem;
+        color: var(--color-text-primary);
+    }
+    
+    .feature-card p {
+        color: var(--color-text-secondary);
+        line-height: 1.7;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, var(--color-bg-tertiary) 0%, var(--color-bg-secondary) 100%);
+    }
+    
+    .cta-content {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .cta-content h2 {
+        margin-bottom: 1rem;
+    }
+    
+    .cta-content p {
+        margin: 0 auto 2rem;
+        font-size: 1.125rem;
+    }
+    
+    .destination-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+</style>
+
+@code {
+    private List<TimeTravelAgency.Models.Destination> destinations = new();
+
+    protected override void OnInitialized()
+    {
+        destinations = DestinationService.GetAllDestinations();
+    }
+}

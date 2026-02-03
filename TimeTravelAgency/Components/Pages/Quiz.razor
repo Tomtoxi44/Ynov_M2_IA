@@ -1,0 +1,143 @@
+@page "/quiz"
+@using TimeTravelAgency.Services
+@inject QuizService QuizService
+@inject DestinationService DestinationService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Trouvez votre voyage idéal - TimeTravel Agency</PageTitle>
+
+<section class="section" style="padding-top: 120px;">
+    <div class="container">
+        <div class="section-header">
+            <h1>Trouvez votre destination idéale</h1>
+            <div class="gold-line"></div>
+            <p>Répondez à quelques questions et découvrez quelle époque vous correspond le mieux.</p>
+        </div>
+        
+        <div class="quiz-container">
+            @if (!quizCompleted)
+            {
+                <!-- Progress -->
+                <div class="quiz-progress">
+                    @for (int i = 0; i < questions.Count; i++)
+                    {
+                        var stepClass = i < currentQuestionIndex ? "completed" : (i == currentQuestionIndex ? "active" : "");
+                        <div class="quiz-progress-step @stepClass"></div>
+                    }
+                </div>
+                
+                <!-- Question -->
+                <h2 class="quiz-question">@currentQuestion.Question</h2>
+                
+                <!-- Options -->
+                <div class="quiz-options">
+                    @foreach (var option in currentQuestion.Options)
+                    {
+                        <button class="quiz-option @(selectedAnswer == option.Value ? "selected" : "")"
+                                @onclick="() => SelectAnswer(option.Value)">
+                            @option.Text
+                        </button>
+                    }
+                </div>
+                
+                @if (!string.IsNullOrEmpty(selectedAnswer))
+                {
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="btn btn-primary" @onclick="NextQuestion">
+                            @(currentQuestionIndex < questions.Count - 1 ? "Question suivante" : "Voir mon résultat")
+                        </button>
+                    </div>
+                }
+            }
+            else
+            {
+                <!-- Résultat -->
+                <div class="quiz-result">
+                    <h2 class="quiz-result-title">Votre destination idéale</h2>
+                    
+                    @if (recommendedDestination != null)
+                    {
+                        <h3 style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--color-text-primary);">
+                            @recommendedDestination.Name
+                        </h3>
+                        
+                        <p class="quiz-result-text">
+                            @QuizService.GetRecommendationText(recommendation)
+                        </p>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                            <a href="/destinations/@recommendedDestination.Id" class="btn btn-primary">
+                                Découvrir cette destination
+                            </a>
+                            <button class="btn btn-secondary" @onclick="RestartQuiz">
+                                Recommencer le quiz
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@code {
+    private List<TimeTravelAgency.Models.QuizQuestion> questions = new();
+    private int currentQuestionIndex = 0;
+    private Dictionary<int, string> answers = new();
+    private string selectedAnswer = "";
+    private bool quizCompleted = false;
+    private string recommendation = "";
+    private TimeTravelAgency.Models.Destination? recommendedDestination;
+
+    private TimeTravelAgency.Models.QuizQuestion currentQuestion => questions[currentQuestionIndex];
+
+    protected override void OnInitialized()
+    {
+        questions = QuizService.GetQuestions();
+    }
+
+    private void SelectAnswer(string value)
+    {
+        selectedAnswer = value;
+        answers[currentQuestionIndex] = value;
+    }
+
+    private void NextQuestion()
+    {
+        if (currentQuestionIndex < questions.Count - 1)
+        {
+            currentQuestionIndex++;
+            selectedAnswer = answers.ContainsKey(currentQuestionIndex) ? answers[currentQuestionIndex] : "";
+        }
+        else
+        {
+            CompleteQuiz();
+        }
+    }
+
+    private void CompleteQuiz()
+    {
+        recommendation = QuizService.GetRecommendation(answers);
+        
+        recommendedDestination = recommendation switch
+        {
+            "Paris" => DestinationService.GetDestinationById(1),
+            "Cretace" => DestinationService.GetDestinationById(2),
+            "Florence" => DestinationService.GetDestinationById(3),
+            _ => DestinationService.GetDestinationById(1)
+        };
+        
+        quizCompleted = true;
+    }
+
+    private void RestartQuiz()
+    {
+        currentQuestionIndex = 0;
+        answers.Clear();
+        selectedAnswer = "";
+        quizCompleted = false;
+        recommendation = "";
+        recommendedDestination = null;
+    }
+}
